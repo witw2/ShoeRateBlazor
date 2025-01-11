@@ -1,0 +1,26 @@
+﻿@page "/login"
+@using ShoeRateBlazor.Models
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<h3>Login</h3>
+
+<input type="text" @bind="loginUser.Username" placeholder="Username" />
+<input type="password" @bind="loginUser.Password" placeholder="Password" />
+<button @onclick="LoginUser">Login</button>
+
+@code {
+    private LoginUserRequest loginUser = new LoginUserRequest();
+
+    private async Task LoginUser()
+    {
+        var response = await ApiService.LoginUserAsync(loginUser);
+        // Save the token in local storage
+        if (response?.Token != null)
+        {
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", response.Token);
+            Navigation.NavigateTo("/");
+        }
+    }
+}

@@ -1,0 +1,61 @@
+﻿@page "/items/{itemId:guid}"
+@using ShoeRateBlazor.Models
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<h3>Item Details</h3>
+
+@if (item == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <p>Name: @item.Name</p>
+    <p>Description: @item.Description</p>
+    <p>Average Rating: @item.AverageRating</p>
+    <p>Created By: @item.CreatedByUserName</p>
+
+    <h4>Ratings</h4>
+    <ul>
+        @foreach (var rating in ratings.Ratings)
+        {
+            <li>
+                @rating.User: @rating.Rating
+                <button @onclick="() => RemoveRating(rating.Id)">Remove</button>
+            </li>
+        }
+    </ul>
+
+    <h4>Add Rating</h4>
+    <input type="number" @bind="newRating" />
+    <button @onclick="AddRating">Add Rating</button>
+}
+
+@code {
+    [Parameter]
+    public Guid ItemId { get; set; }
+
+    private GetItemDetailsResponse item;
+    private GetRatingListResponse ratings;
+    private int newRating;
+
+    protected override async Task OnInitializedAsync()
+    {
+        item = await ApiService.GetItemDetailsAsync(ItemId);
+        ratings = await ApiService.GetRatingsAsync(ItemId, 1);
+    }
+
+    private async Task AddRating()
+    {
+        var request = new CreateRatingRequest { Rate = newRating };
+        await ApiService.CreateRatingAsync(ItemId, request);
+        ratings = await ApiService.GetRatingsAsync(ItemId, 1);
+    }
+
+    private async Task RemoveRating(Guid ratingId)
+    {
+        await ApiService.RemoveRatingAsync(ItemId, ratingId);
+        ratings = await ApiService.GetRatingsAsync(ItemId, 1);
+    }
+}

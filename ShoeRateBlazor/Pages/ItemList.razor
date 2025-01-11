@@ -1,0 +1,50 @@
+﻿@page "/items"
+@using ShoeRateBlazor.Models
+@inject ApiService ApiService
+@inject NavigationManager Navigation
+
+<h3>Items</h3>
+
+@if (items == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var item in items.Items)
+        {
+            <li>
+                @item.Name - @item.AverageRating
+                <button @onclick="() => NavigateToItemDetails(item.Id)">Details</button>
+            </li>
+        }
+    </ul>
+}
+
+<button @onclick="CreateNewItem">Create New Item</button>
+
+@code {
+    private GetItemListResponse items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await ApiService.GetItemsAsync(10, 1, null);
+    }
+
+    private async Task CreateNewItem()
+    {
+        var newItem = new CreateItemRequest
+            {
+                Name = "New Item",
+                Description = "Description of the new item"
+            };
+        await ApiService.CreateItemAsync(newItem);
+        items = await ApiService.GetItemsAsync(10, 1, null);
+    }
+
+    private void NavigateToItemDetails(Guid itemId)
+    {
+        Navigation.NavigateTo($"/items/{itemId}");
+    }
+}
