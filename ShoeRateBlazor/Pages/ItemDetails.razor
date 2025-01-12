@@ -3,33 +3,51 @@
 @inject ApiService ApiService
 @inject NavigationManager Navigation
 
-<h3>Item Details</h3>
+<h3 class="text-primary">Item Details</h3>
+
+<button class="btn btn-primary mb-3" @onclick="BackToItems">Back to Items</button>
 
 @if (item == null)
 {
-    <p>Loading...</p>
+    <p class="text-primary">Loading...</p>
 }
 else
 {
-    <p>Name: @item.Name</p>
-    <p>Description: @item.Description</p>
-    <p>Average Rating: @item.AverageRating</p>
-    <p>Created By: @item.CreatedByUserName</p>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">@item.Name</h5>
+            <p class="card-text">@item.Description</p>
+            <p class="card-text"><small class="text-muted">Average Rating: @item.AverageRating</small></p>
+            <p class="card-text"><small class="text-muted">Created By: @item.CreatedByUserName</small></p>
+        </div>
+    </div>
 
-    <h4>Ratings</h4>
-    <ul>
+    <h4 class="text-primary">Ratings</h4>
+    <button class="btn btn-danger mb-3" @onclick="RemoveRating">Remove Your Rating</button>
+    <ul class="list-group">
         @foreach (var rating in ratings.Ratings)
         {
-            <li>
-                @rating.User: @rating.Rating
-                <button @onclick="() => RemoveRating(rating.Id)">Remove</button>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>@rating.User: @rating.Rating</span>
             </li>
         }
     </ul>
 
-    <h4>Add Rating</h4>
-    <input type="number" @bind="newRating" />
-    <button @onclick="AddRating">Add Rating</button>
+    <div class="mt-3">
+        <button class="btn btn-primary" @onclick="PreviousRatingPage" disabled="@(!ratings.HasPrevious)">Previous</button>
+        <button class="btn btn-primary" @onclick="NextRatingPage" disabled="@(!ratings.HasNext)">Next</button>
+    </div>
+
+    <h4 class="text-primary mt-3">Add Rating</h4>
+    <div class="input-group mb-3">
+        <select class="form-select" @bind="newRating">
+            @for (int i = 1; i <= 10; i++)
+            {
+                <option value="@i">@i</option>
+            }
+        </select>
+        <button class="btn btn-primary" @onclick="AddRating">Add Rating</button>
+    </div>
 }
 
 @code {
@@ -38,24 +56,59 @@ else
 
     private GetItemDetailsResponse item;
     private GetRatingListResponse ratings;
-    private int newRating;
+    private int newRating = 5;
+    private int currentRatingPage = 1;
 
     protected override async Task OnInitializedAsync()
     {
         item = await ApiService.GetItemDetailsAsync(ItemId);
-        ratings = await ApiService.GetRatingsAsync(ItemId, 1);
+        await LoadRatings();
+    }
+
+    private async Task LoadRatings()
+    {
+        ratings = await ApiService.GetRatingsAsync(ItemId, currentRatingPage);
     }
 
     private async Task AddRating()
     {
         var request = new CreateRatingRequest { Rate = newRating };
         await ApiService.CreateRatingAsync(ItemId, request);
-        ratings = await ApiService.GetRatingsAsync(ItemId, 1);
+        await LoadRatings();
     }
 
-    private async Task RemoveRating(Guid ratingId)
+    private async Task RemoveRating()
     {
-        await ApiService.RemoveRatingAsync(ItemId, ratingId);
-        ratings = await ApiService.GetRatingsAsync(ItemId, 1);
+        await ApiService.RemoveRatingAsync(ItemId);
+        await LoadRatings();
+    }
+
+    private void BackToItems()
+    {
+        Navigation.NavigateTo("/items");
+    }
+
+    private async Task PreviousRatingPage()
+    {
+        if (ratings.HasPrevious)
+        {
+            currentRatingPage--;
+            await LoadRatings();
+        }
+    }
+
+    private async Task NextRatingPage()
+    {
+        if (ratings.HasNext)
+        {
+            currentRatingPage++;
+            await LoadRatings();
+        }
     }
 }
+
+
+
+
+
+

@@ -3,13 +3,29 @@
 @inject ApiService ApiService
 @inject NavigationManager Navigation
 
-<h3>Register</h3>
+<h3 class="text-primary">Register</h3>
 
-<input type="email" @bind="newUser.Email" placeholder="Email" />
-<input type="text" @bind="newUser.Username" placeholder="Username" />
-<input type="password" @bind="newUser.Password" placeholder="Password" />
-<input type="password" @bind="newUser.ConfirmPassword" placeholder="Confirm Password" />
-<button @onclick="RegisterUser">Register</button>
+<div class="card">
+    <div class="card-body">
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" class="form-control" @bind="newUser.Email" placeholder="Email" />
+        </div>
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" id="username" class="form-control" @bind="newUser.Username" placeholder="Username" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" class="form-control" @bind="newUser.Password" placeholder="Password" />
+        </div>
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="form-control" @bind="newUser.ConfirmPassword" placeholder="Confirm Password" />
+        </div>
+        <button class="btn btn-primary" @onclick="RegisterUser">Register</button>
+    </div>
+</div>
 
 @code {
     private CreateUserRequest newUser = new CreateUserRequest();
@@ -20,3 +36,10 @@
         Navigation.NavigateTo("/login");
     }
 }
+
+
+
+
+
+
+

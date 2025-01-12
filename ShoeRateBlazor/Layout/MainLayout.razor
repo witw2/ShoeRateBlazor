@@ -1,17 +1,22 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
 
 <PageTitle>ShoeRateBlazor</PageTitle>
 
 <div class="page">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">ShoeRateBlazor</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <NavMenu />
-        </div>
-    </nav>
+    @if (showNavMenu)
+    {
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">ShoeRateBlazor</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <NavMenu />
+            </div>
+        </nav>
+    }
 
     <main role="main" class="container">
         <article class="content px-4">
@@ -19,3 +24,32 @@
         </article>
     </main>
 </div>
+
+@code {
+    private bool showNavMenu = true;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += HandleLocationChanged;
+        UpdateNavMenuVisibility();
+    }
+
+    private void HandleLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateNavMenuVisibility();
+    }
+
+    private void UpdateNavMenuVisibility()
+    {
+        showNavMenu = !Navigation.Uri.Contains("/items/");
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+}
+
+
+

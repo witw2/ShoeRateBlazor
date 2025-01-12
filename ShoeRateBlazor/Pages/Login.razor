@@ -4,11 +4,21 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 
-<h3>Login</h3>
+<h3 class="text-primary">Login</h3>
 
-<input type="text" @bind="loginUser.Username" placeholder="Username" />
-<input type="password" @bind="loginUser.Password" placeholder="Password" />
-<button @onclick="LoginUser">Login</button>
+<div class="card">
+    <div class="card-body">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" id="username" class="form-control" @bind="loginUser.Username" placeholder="Username" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" class="form-control" @bind="loginUser.Password" placeholder="Password" />
+        </div>
+        <button class="btn btn-primary" @onclick="LoginUser">Login</button>
+    </div>
+</div>
 
 @code {
     private LoginUserRequest loginUser = new LoginUserRequest();
@@ -24,3 +34,10 @@
         }
     }
 }
+
+
+
+
+
+
+

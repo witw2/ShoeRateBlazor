@@ -1,19 +1,37 @@
 ﻿@page "/create-item"
 @using ShoeRateBlazor.Models
 @inject ApiService ApiService
+@inject NavigationManager Navigation
 
-<h3>Create Item</h3>
+<h3 class="text-primary">Create Item</h3>
 
-<input type="text" @bind="newItem.Name" placeholder="Name" />
-<input type="text" @bind="newItem.Description" placeholder="Description" />
-<button @onclick="CreateItem">Create</button>
+<div class="card">
+    <div class="card-body">
+        <div class="mb-3">
+            <label for="itemName" class="form-label">Name</label>
+            <input type="text" id="itemName" class="form-control" @bind="newItem.Name" placeholder="Name" />
+        </div>
+        <div class="mb-3">
+            <label for="itemDescription" class="form-label">Description</label>
+            <input type="text" id="itemDescription" class="form-control" @bind="newItem.Description" placeholder="Description" />
+        </div>
+        <button class="btn btn-success" @onclick="CreateNewItem">Create</button>
+    </div>
+</div>
 
 @code {
     private CreateItemRequest newItem = new CreateItemRequest();
 
-    private async Task CreateItem()
+    private async Task CreateNewItem()
     {
         await ApiService.CreateItemAsync(newItem);
-        newItem = new CreateItemRequest();
+        Navigation.NavigateTo("/items");
     }
 }
+
+
+
+
+
+
+

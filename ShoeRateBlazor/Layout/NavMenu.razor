@@ -1,4 +1,7 @@
-﻿<ul class="navbar-nav me-auto">
+﻿@inject AuthState AuthState
+@inject NavigationManager Navigation
+
+<ul class="navbar-nav me-auto">
     <li class="nav-item">
         <NavLink class="nav-link" href="items">
             Items
@@ -9,21 +12,50 @@
             Create Item
         </NavLink>
     </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="rate-item">
-            Rate Item
-        </NavLink>
-    </li>
 </ul>
 <ul class="navbar-nav ms-auto">
-    <li class="nav-item">
-        <NavLink class="nav-link" href="register">
-            Register
-        </NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="login">
-            Login
-        </NavLink>
-    </li>
+    @if (isLoggedIn)
+    {
+        <li class="nav-item">
+            <button class="nav-link btn btn-link" @onclick="Logout">Logout</button>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <NavLink class="nav-link" href="register">
+                Register
+            </NavLink>
+        </li>
+        <li class="nav-item">
+            <NavLink class="nav-link" href="login">
+                Login
+            </NavLink>
+        </li>
+    }
 </ul>
+
+@code {
+    private bool isLoggedIn;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoggedIn = await AuthState.IsUserLoggedIn();
+        AuthState.OnChange += StateHasChanged;
+    }
+
+    private async Task Logout()
+    {
+        await AuthState.Logout();
+        isLoggedIn = false;
+        Navigation.NavigateTo("/login");
+    }
+
+    public void Dispose()
+    {
+        AuthState.OnChange -= StateHasChanged;
+    }
+}
+
+
+

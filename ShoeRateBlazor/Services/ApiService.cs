@@ -2,17 +2,22 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
+using Microsoft.AspNetCore.Components;
 using ShoeRateBlazor.Models;
 
 public class ApiService
 {
     private readonly HttpClient _httpClient;
     private readonly IJSRuntime _jsRuntime;
+    private readonly NavigationManager _navigationManager;
+    private readonly AuthState _authState;
 
-    public ApiService(HttpClient httpClient, IJSRuntime jsRuntime)
+    public ApiService(HttpClient httpClient, IJSRuntime jsRuntime, NavigationManager navigationManager, AuthState authState)
     {
         _httpClient = httpClient;
         _jsRuntime = jsRuntime;
+        _navigationManager = navigationManager;
+        _authState = authState;
     }
 
     private async Task AddAuthorizationHeader()
@@ -24,8 +29,18 @@ public class ApiService
         }
     }
 
+    private async Task EnsureAuthenticated()
+    {
+        if (!await _authState.IsUserLoggedIn())
+        {
+            _navigationManager.NavigateTo("/login");
+            throw new UnauthorizedAccessException("User is not authenticated");
+        }
+    }
+
     public async Task<CreateItemResponse> CreateItemAsync(CreateItemRequest request)
     {
+        await EnsureAuthenticated();
         await AddAuthorizationHeader();
         var response = await _httpClient.PostAsJsonAsync("/api/item", request);
         response.EnsureSuccessStatusCode();
@@ -34,6 +49,7 @@ public class ApiService
 
     public async Task<GetItemListResponse> GetItemsAsync(int pageSize, int pageNumber, string search)
     {
+        await EnsureAuthenticated();
         var response = await _httpClient.GetAsync($"/api/item?PageSize={pageSize}&PageNumber={pageNumber}&Search={search}");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<GetItemListResponse>();
@@ -41,6 +57,7 @@ public class ApiService
 
     public async Task<GetItemDetailsResponse> GetItemDetailsAsync(Guid itemId)
     {
+        await EnsureAuthenticated();
         var response = await _httpClient.GetAsync($"/api/item/{itemId}");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<GetItemDetailsResponse>();
@@ -48,6 +65,7 @@ public class ApiService
 
     public async Task<CreateRatingResponse> CreateRatingAsync(Guid itemId, CreateRatingRequest request)
     {
+        await EnsureAuthenticated();
         await AddAuthorizationHeader();
         var response = await _httpClient.PostAsJsonAsync($"/api/item/{itemId}/ratings", request);
         response.EnsureSuccessStatusCode();
@@ -56,15 +74,17 @@ public class ApiService
 
     public async Task<GetRatingListResponse> GetRatingsAsync(Guid itemId, int pageNumber)
     {
+        await EnsureAuthenticated();
         var response = await _httpClient.GetAsync($"/api/item/{itemId}/ratings?PageNumber={pageNumber}");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<GetRatingListResponse>();
     }
 
-    public async Task RemoveRatingAsync(Guid itemId, Guid ratingId)
+    public async Task RemoveRatingAsync(Guid itemId)
     {
+        await EnsureAuthenticated();
         await AddAuthorizationHeader();
-        var response = await _httpClient.DeleteAsync($"/api/item/{itemId}/ratings/{ratingId}");
+        var response = await _httpClient.DeleteAsync($"/api/item/{itemId}/ratings");
         response.EnsureSuccessStatusCode();
     }
 
@@ -79,6 +99,9 @@ public class ApiService
     {
         var response = await _httpClient.PostAsJsonAsync("/api/user/login", request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<LoginUserResponse>();
+        var loginResponse = await response.Content.ReadFromJsonAsync<LoginUserResponse>();
+        await _authState.Login(loginResponse.Token);
+        _navigationManager.NavigateTo(_navigationManager.Uri, forceLoad: true);
+        return loginResponse;
     }
 }
